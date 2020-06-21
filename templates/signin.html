@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Sign In
+{% endblock %}
+
+{% block body %}
+<form id="signin-form" action="{{ url_for('signin')}}" method="POST">
+    <input id="display-name" placeholder="Display name" name="display_name" autofocus autocomplete="off">
+    <input id="btn-signin" type="submit" value="Sign in">
+</form>
+{% endblock %}
