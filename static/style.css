@@ -1,1 +1,10 @@
-/* TODO */
+li {
+    list-style: none;
+}
+
+.msg {
+    border: solid black 2px;
+    margin: 2px;
+    padding: 2px;
+    width: fit-content;
+}
