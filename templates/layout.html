@@ -7,6 +7,20 @@
     <title>
         Flack: {% block title %}{% endblock %}
     </title>
+
+    <!-- Socket IO library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+
+    <!-- Javascript -->
+    {% if request.endpoint == "index" %}
+    <script src="{{ url_for('static', filename='index.js') }}"></script>
+    {% endif %}
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <!-- Icon -->
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
 </head>
 
 <body>
