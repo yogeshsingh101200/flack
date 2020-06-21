@@ -1,9 +1,25 @@
 {% extends "layout.html" %}
 
 {% block title %}
-TODO
+Channels
 {% endblock %}
 
 {% block body %}
-<h1>TODO</h1>
+<h1>Hey, {{session["user"]}}!</h1>
+
+<a href="{{ url_for('signout') }}" id="#signout">Sign out</a>
+
+<h1>Channel List</h1>
+<ul id="channel-list">
+    {% for channel in channels %}
+    <li class="channels"><button id="{{channel}}">{{channel}}</button></li>
+    {% endfor %}
+</ul>
+<form id="create-channel-form">
+    <input id="channel-name" type="text" placeholder="Channel name" name="channel_name" autofocus autocomplete="off">
+    <input id="btn-create-channel" type="submit" value="Create channel">
+</form>
+
+<div id="channel-space">
+</div>
 {% endblock %}
