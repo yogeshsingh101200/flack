@@ -7,16 +7,21 @@ from datetime import datetime
 from flask import Flask, render_template, session, redirect, request
 from flask_socketio import SocketIO, emit, join_room, leave_room
 
-from helpers import signin_required
+from helpers import signin_required, random_hex_darkcolor
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 socketio = SocketIO(app)
 
-# List of users
-users = []
+# dictionary of users
+# keys = user name and value = color code
+users = {}
 
 # dictionary of channels
+# keys = channel name value =  {
+#   key users value user list
+#   key messages value message dict list
+# }
 channels = {}
 
 
@@ -40,28 +45,31 @@ def signin():
         return render_template("signin.html")
 
     user = request.form["display_name"]
+
     if user in users:
         return "name taken"
 
-    users.append(user)
+    color = random_hex_darkcolor()
+
+    users[user] = color
 
     session["user"] = user
     return redirect("/")
 
 
-@app.route("/signout")
-@signin_required
+@ app.route("/signout")
+@ signin_required
 def signout():
     """ Sign out a user """
 
     # Deletes session data
     if session["user"] in users:
-        users.remove(session["user"])
+        del users[session["user"]]
     session.pop("user", None)
     return redirect("/signin")
 
 
-@socketio.on("add channel")
+@ socketio.on("add channel")
 def add_channel(data):
     """ Adds a channel """
 
@@ -116,7 +124,12 @@ def on_leave(data):
 def channel_space():
     """ Displays channel page """
     channel = request.form.get("channel")
-    return render_template("channel.html", messages=channels[channel]["messages"])
+    members = channels[channel]["users"]
+    messages = channels[channel]["messages"]
+
+    return render_template("channel.html", channel=channel,
+                           members=members, messages=messages,
+                           hexcode=users)
 
 
 @socketio.on("message sent")
@@ -137,17 +150,33 @@ def msg_sent(data):
         "content": content
     }
 
+    color_code = users[session["user"]]
+
     channel = channels[room]
+    if len(channel["messages"]) > 10:
+        print(channel["messages"])
+        channel["messages"].pop(0)
+
     channel["messages"].append(message)
-    emit("message received", {"message": message}, room=room)
+    emit("message received", {"message": message,
+                              "hexcode": color_code}, room=room)
 
 
-@socketio.on("disconnect")
+@ socketio.on("disconnect")
 def disconnect():
-    """ Tests if a user disconnects on refresh """
+    """ Removes user on disconnect form user list of channel """
+    print("======================================")
+    print("SID: ", request.sid, "User: ", session["user"], "disconnected!")
+    print("======================================")
     user = session["user"]
+    usr_present_room = None
 
     for channel in channels:
         room = channels[channel]
         if user in room["users"]:
+            usr_present_room = channel
             room["users"].remove(user)
+            break
+
+    emit("channel left",
+         {"user": user, "channel": usr_present_room}, room=usr_present_room)
