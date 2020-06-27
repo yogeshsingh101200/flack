@@ -5,21 +5,43 @@ Channels
 {% endblock %}
 
 {% block body %}
-<h1>Hey, {{session["user"]}}!</h1>
-
-<a href="{{ url_for('signout') }}" id="#signout">Sign out</a>
-
-<h1>Channel List</h1>
-<ul id="channel-list">
-    {% for channel in channels %}
-    <li class="channels"><button id="{{channel}}">{{channel}}</button></li>
-    {% endfor %}
-</ul>
-<form id="create-channel-form">
-    <input id="channel-name" type="text" placeholder="Channel name" name="channel_name" autofocus autocomplete="off">
-    <input id="btn-create-channel" type="submit" value="Create channel">
-</form>
-
-<div id="channel-space">
+<div class="container">
+    <div class="row mt-2 mx-2">
+        <div class="dropdown dropright">
+            <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown"
+                aria-haspopup="true" aria-expanded="false">
+                Channels
+            </button>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenu2" style="width: max-content;">
+                <form id="create-channel-form" class="px-2 py-1">
+                    <div class="form-row">
+                        <div class="col-10">
+                            <input id="channel-name" class="form-control form-control-sm" type="text"
+                                placeholder="New channel">
+                        </div>
+                        <div class="col-2">
+                            <button id="btn-create-channel" class="btn btn btn-success btn-sm" type="submit">
+                                <span class="fas fa-plus"></span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                <div class=" dropdown-divider">
+                </div>
+                <div id="channel-list" class="overflow-auto" style="height: 25vh;">
+                    {% for channel in channels %}
+                    <button class="dropdown-item" id="{{channel}}">{{channel}}</button>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mx-2 my-2 border">
+        <div id="channel-space" class="col px-0"></div>
+    </div>
 </div>
+
+<script>
+    var this_user = "{{session['user']}}";
+</script>
 {% endblock %}
