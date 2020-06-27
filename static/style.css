@@ -3,8 +3,28 @@ li {
 }
 
 .msg {
-    border: solid black 2px;
-    margin: 2px;
     padding: 2px;
-    width: fit-content;
+    width: 100%;
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+#display-name {
+    color: black;
+}
+
+#channel-list > button {
+    font-size: large;
+}
+
+#channel-list > .active {
+    color: #fff;
+    text-decoration: none;
+    background-color: #007bff;
+}
+
+#msg-wrapper {
+    height: 55vh;
 }
