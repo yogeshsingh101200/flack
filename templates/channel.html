@@ -1,20 +1,70 @@
-<hr>
-<h2>Messages</h2>
-<button id="leave">Leave</button>
-<hr>
-<ul id="messages">
-    {% for message in messages %}
-    <li class="msg">
-        {{message.date}} {{message.time}}
-        <br>
-        {{message.content}}
-        <br>
-        <small>By {{message.by}}</small>
-    </li>
-    {% endfor %}
-</ul>
+<nav id="channelNavbar" class="navbar navbar-expand navbar-light bg-light pr-2">
+    <div class="navbar-brand text-uppercase">{{channel}}</div>
 
-<form id="message-form">
-    <input id="message" name="message" type="text" placeholder="Type message..." autofocus autocomplete="off">
-    <input id="send-msg" type="submit" value="Send">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item mx-1">
+                <!-- Button trigger modal -->
+                <button type="button" class="btn btn-info" data-toggle="modal" data-target="#memberListSection">
+                    Users
+                </button>
+            </li>
+            <li class="nav-item ml-1">
+                <button id="leave" class="btn btn-danger">Leave</button>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<hr class="mt-0 mb-1">
+
+<div id="msg-wrapper" class="overflow-auto mx-1 my-1 p-0">
+    <ul id="messages" class="m-0 py-0 px-1">
+        {% for message in messages %}
+        <li class="msg">
+            <small>{{message.date}} {{message.time}}</small>
+            <p>
+                <span class="usr-name" data-color="{{ hexcode[message.by] }}">{{message.by}}</span>: {{message.content}}
+            </p>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+
+<form id="message-form" class="mx-2 my-2">
+    <div class="form-row">
+        <div class="col-sm-10">
+            <input id="message" class="form-control" name="message" type="text" placeholder="Type message..." autofocus
+                autocomplete="off">
+        </div>
+        <div class="col-sm-2 mt-1 mt-md-0">
+            <input id="send-msg" class="btn btn-primary btn-block" type="submit" value="Send">
+        </div>
+    </div>
 </form>
+
+
+<!-- Modal -->
+<div class="modal fade" id="memberListSection" tabindex="-1" role="dialog" aria-labelledby="memberListSectionLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="memberListSectionLabel">Members</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <ul id="memberList">
+                    {% for member in members %}
+                    <li>{{member}}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
