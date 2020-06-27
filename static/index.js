@@ -47,20 +47,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     socket.on("channel created", data => {
         if (data.success) {
-            // Create list item with class channels
-            const li = document.createElement("li");
-            li.setAttribute("class", "channels");
-
             // Create channel join button
             const button = document.createElement("button");
             button.setAttribute("id", data.channel);
+            button.setAttribute("class", "dropdown-item");
             button.innerHTML = data.channel;
 
-            // Add button to list
-            li.append(button);
-
-            // Add list to channel list
-            document.querySelector("#channel-list").append(li);
+            // Add button to channel list
+            document.querySelector("#channel-list").append(button);
 
             // Clears input field and disables submit button
             document.querySelector("#channel-name").value = "";
@@ -74,14 +68,27 @@ document.addEventListener("DOMContentLoaded", () => {
     function get_channels() {
 
         // Join channel room when user clicks on it
-        document.querySelectorAll(".channels > button").forEach(button => {
+        buttons = document.querySelectorAll("#channel-list > button");
+
+        if (buttons.length > 5) {
+            document.querySelector("#channel-list").style.height = "25vh";
+        }
+        else {
+            document.querySelector("#channel-list").style.height = "auto";
+        }
+
+        buttons.forEach(button => {
             button.onclick = function () {
 
                 if (current_channel != "none") {
-                    document.querySelector(`#${current_channel}`).disabled = false;
+                    const ele = document.querySelector(`#${current_channel}`);
+                    ele.disabled = false;
+                    ele.classList.remove("active");
+
                     socket.emit("leave", {
                         "room": current_channel
                     });
+                    document.querySelector("#channel-space").innerHTML = "";
                 }
                 socket.emit("join", {
                     "room": this.innerHTML
@@ -97,6 +104,9 @@ document.addEventListener("DOMContentLoaded", () => {
     socket.on("channel joined", data => {
         current_channel = data.channel;
         localStorage.setItem("current_channel", current_channel);
+
+        const ele = document.querySelector(`#${current_channel}`);
+        ele.classList.add("active");
 
         if (!document.querySelector("#messages")) {
             // Requests server for channel.html
@@ -116,6 +126,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 // Listen for leave channel
                 listen_leave_channel();
+
+                updateScroll(document.querySelector("#msg-wrapper"), true);
+
+                addColors(document.querySelectorAll(".usr-name"));
             };
 
             const form_data = new FormData();
@@ -132,16 +146,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Listen for leave channel
             listen_leave_channel();
+
+            addMember(data.user);
         }
 
         // Notifies members of a channel when a user joins
         function usr_joined_alert() {
+            const element = document.querySelector("#msg-wrapper");
+            bottomScrolled = isScrolledToBottom(element);
+
             const li = document.createElement("li");
-            li.innerHTML = `[${data.user} joined ${current_channel}]`;
+            li.innerHTML = `[ ${data.user} joined ${current_channel} ]`;
+            li.classList.add("text-center");
             document.querySelector("#messages").append(li);
+
+            updateScroll(element, bottomScrolled);
         }
     });
-
 
     function listen_for_msg_sending() {
         // By default, submit button is disabled
@@ -176,32 +197,77 @@ document.addEventListener("DOMContentLoaded", () => {
                 "room": current_channel
             });
 
-            document.querySelector(`#${current_channel}`).disabled = false;
+            const ele = document.querySelector(`#${current_channel}`);
+            ele.disabled = false;
+            ele.classList.remove("active");
             current_channel = "none";
             localStorage.setItem("current_channel", current_channel);
             document.querySelector("#channel-space").innerHTML = "";
         };
     }
 
-    socket.on("channel left", data => {
+    function addMember(member) {
         const li = document.createElement("li");
-        li.innerHTML = `[${data.user} has left ${data.channel}]`;
+        li.innerHTML = member;
+        document.querySelector("#memberList").append(li);
+    }
+
+    socket.on("channel left", data => {
+        const element = document.querySelector("#msg-wrapper");
+        bottomScrolled = isScrolledToBottom(element);
+
+        const li = document.createElement("li");
+        li.innerHTML = `[ ${data.user} has left ${data.channel} ]`;
+        li.classList.add("text-center");
         document.querySelector("#messages").append(li);
+        removeMember(data.user);
+
+        updateScroll(element, bottomScrolled);
     });
+
+    function removeMember(member) {
+        document.querySelectorAll("#memberList > li").forEach(li => {
+            let memberInli = li.innerHTML;
+            if (memberInli === member) {
+                li.remove();
+            }
+        });
+    }
 
     // When channel receives a message
     socket.on("message received", data => {
+        const element = document.querySelector("#msg-wrapper");
+        bottomScrolled = isScrolledToBottom(element);
 
-        const template = `${data.message.date} ${data.message.time}
-        <br>
-        ${data.message.content}
-        <br>
-        <small>By ${data.message.by}</small>`;
+        const template = `<small>${data.message.date} ${data.message.time}</small>
+            <p>
+                <span class="usr-name" data-color="${data.hexcode}">${data.message.by}</span>
+                : ${data.message.content}
+            </p>`;
 
         // Adding message to list of messages
         const li = document.createElement("li");
         li.setAttribute("class", "msg");
         li.innerHTML = template;
         document.querySelector("#messages").append(li);
+
+        updateScroll(element, bottomScrolled);
+        addColors(document.querySelectorAll(".usr-name"));
     });
+
+    function updateScroll(element, bottomScrolled) {
+        if (bottomScrolled) {
+            element.scrollTop = element.scrollHeight - element.clientHeight;
+        }
+    }
+
+    function isScrolledToBottom(element) {
+        return !(element.scrollTop + 1 < element.scrollHeight - element.clientHeight);
+    }
+
+    function addColors(elementList) {
+        elementList.forEach(element => {
+            element.style.color = element.dataset.color;
+        });
+    }
 });
