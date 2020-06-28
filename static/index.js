@@ -270,4 +270,8 @@ document.addEventListener("DOMContentLoaded", () => {
             element.style.color = element.dataset.color;
         });
     }
+
+    window.addEventListener("beforeunload", () => {
+        socket.disconnect();
+    });
 });
