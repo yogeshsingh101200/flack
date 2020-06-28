@@ -48,7 +48,12 @@
             Flack
         </a>
         {% if session.get("user") %}
-        <span class="navbar-text text-capitalize" id="display-name">Hey, {{session["user"]}}!</span>
+        <ul class="nav">
+            <li class="nav-item">
+                <button class="btn btn-outline-dark btn-usr-name" disabled>{{session["user"]}}</button>
+            </li>
+        </ul>
+        <!-- <span class="navbar-text text-capitalize" id="display-name">Hey, {{session["user"]}}!</span>-->
         {% endif %}
     </nav>
     {% block body %}
