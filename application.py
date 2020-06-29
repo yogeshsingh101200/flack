@@ -3,7 +3,7 @@
 from datetime import datetime
 
 from flask import Flask, render_template, session, redirect, request
-from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask_socketio import SocketIO, send, emit, join_room, leave_room
 from flask_session import Session
 
 from helpers import signin_required, random_hex_darkcolor
@@ -139,9 +139,9 @@ def channel_space():
                            color=color)
 
 
-@socketio.on("message sent")
+@socketio.on("message")
 @signin_required
-def msg_sent(data):
+def msg(data):
     """ Send message of the user to correct room """
     content = data["message"]
     room = users[session["user"]]["room"]
@@ -158,13 +158,17 @@ def msg_sent(data):
         "content": content
     }
 
-    color = users[session["user"]]["color"]
+    # color = users[session["user"]]["color"]
     if len(rooms[room]["messages"]) > 100:
         rooms[room]["messages"].pop(0)
 
     rooms[room]["messages"].append(message)
-    emit("message received", {"message": message,
-                              "hexcode": color}, room=room)
+
+    reply = {
+        "message": message,
+        "color": users[session["user"]]["color"]
+    }
+    send(reply, room=room)
 
 
 @socketio.on("connect")

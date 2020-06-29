@@ -163,7 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // When user sends a message
         document.querySelector("#message-form").onsubmit = () => {
-            socket.emit("message sent", {
+            socket.send({
                 "message": document.querySelector("#message").value
             });
 
@@ -216,15 +216,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // When channel receives a message
-    socket.on("message received", data => {
+    socket.on("message", data => {
         const element = document.querySelector("#msg-wrapper");
         bottomScrolled = isScrolledToBottom(element);
 
         const template = `<small>${data.message.date} ${data.message.time}</small>
-            <p>
-                <span class="usr-name" data-color="${data.hexcode}">${data.message.by}</span>
-                : ${data.message.content}
-            </p>`;
+                <p>
+                    <span class="usr-name" data-color="${data.color}">${data.message.by}</span>
+                    : ${data.message.content}
+                </p>`;
 
         // Adding message to list of messages
         const li = document.createElement("li");
