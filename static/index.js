@@ -3,11 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Connect to websocket
     var socket = io.connect(location.protocol + "//" + document.domain + ":" + location.port);
 
-    var current_channel = "none";
-
-    if (localStorage.getItem("current_channel")) {
-        current_channel = localStorage.getItem("current_channel");
-    }
+    var current_channel = null;
 
     // By default, submit button is disabled
     document.querySelector("#btn-create-channel").disabled = true;
@@ -22,12 +18,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // When sockets get connected
     socket.on("connect", () => {
-        if (current_channel != "none") {
-            socket.emit("join", {
-                "room": current_channel
-            });
-            document.querySelector(`#${current_channel}`).disabled = true;
-        }
 
         // When user adds a channel
         document.querySelector("#create-channel-form").onsubmit = () => {
@@ -80,18 +70,18 @@ document.addEventListener("DOMContentLoaded", () => {
         buttons.forEach(button => {
             button.onclick = function () {
 
-                if (current_channel != "none") {
+                if (current_channel) {
                     const ele = document.querySelector(`#${current_channel}`);
                     ele.disabled = false;
                     ele.classList.remove("active");
 
                     socket.emit("leave", {
-                        "room": current_channel
+                        "channel": current_channel
                     });
                     document.querySelector("#channel-space").innerHTML = "";
                 }
                 socket.emit("join", {
-                    "room": this.innerHTML
+                    "channel": this.innerHTML
                 });
                 this.disabled = true;
             };
@@ -102,16 +92,16 @@ document.addEventListener("DOMContentLoaded", () => {
     get_channels();
 
     socket.on("channel joined", data => {
-        current_channel = data.channel;
-        localStorage.setItem("current_channel", current_channel);
-
-        const ele = document.querySelector(`#${current_channel}`);
-        ele.classList.add("active");
 
         if (!document.querySelector("#messages")) {
+            current_channel = data.channel;
+            const ele = document.querySelector(`#${current_channel}`);
+            ele.classList.add("active");
+            ele.disabled = true;
+
             // Requests server for channel.html
             const request = new XMLHttpRequest();
-            request.open("POST", "/channel_space");
+            request.open("GET", "/channel_space");
 
             // On successful request
             request.onload = () => {
@@ -132,11 +122,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 addColors(document.querySelectorAll(".usr-name"));
             };
 
-            const form_data = new FormData();
-            form_data.set("channel", current_channel);
-
             // Sends Request
-            request.send(form_data);
+            request.send();
         }
         else {
             usr_joined_alert();
@@ -194,14 +181,13 @@ document.addEventListener("DOMContentLoaded", () => {
     function listen_leave_channel() {
         document.querySelector("#leave").onclick = () => {
             socket.emit("leave", {
-                "room": current_channel
+                "channel": current_channel
             });
 
             const ele = document.querySelector(`#${current_channel}`);
             ele.disabled = false;
             ele.classList.remove("active");
-            current_channel = "none";
-            localStorage.setItem("current_channel", current_channel);
+            current_channel = null;
             document.querySelector("#channel-space").innerHTML = "";
         };
     }

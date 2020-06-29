@@ -14,7 +14,10 @@ app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 socketio = SocketIO(app)
 
 # dictionary of users
-# keys = user name and value = color code
+# keys = user name and value = {
+#   key: channel value: current channel
+#   key: hexcode value: hexcode of color
+# }
 users = {}
 
 # dictionary of channels
@@ -22,7 +25,7 @@ users = {}
 #   key users value user list
 #   key messages value message dict list
 # }
-channels = {}
+rooms = {}
 
 
 @app.before_request
@@ -35,7 +38,7 @@ def make_permanent_session():
 @signin_required
 def index():
     """ Todo """
-    return render_template("index.html", channels=channels)
+    return render_template("index.html", channels=rooms)
 
 
 @app.route("/signin", methods=["GET", "POST"])
@@ -51,7 +54,9 @@ def signin():
 
     color = random_hex_darkcolor()
 
-    users[user] = color
+    users[user] = {
+        "color": color
+    }
 
     session["user"] = user
     return redirect("/")
@@ -73,33 +78,33 @@ def signout():
 def add_channel(data):
     """ Adds a channel """
 
-    # Channel name
-    channel_name = data["channel"].lower()
+    # room/channel name
+    room = data["channel"].lower()
 
-    if len(channel_name) == 0:
+    if len(room) == 0:
         emit("channel created", {"success": False}, broadcast=True)
     else:
-        if channel_name in channels:
+        if room in rooms:
             emit("channel created", {"success": False}, broadcast=True)
         else:
-            channels[channel_name] = {
+            rooms[room] = {
                 "users": [],
                 "messages": []
             }
             emit("channel created", {"success": True,
-                                     "channel": channel_name}, broadcast=True)
+                                     "channel": room}, broadcast=True)
 
 
 @socketio.on("join")
 def on_join(data):
     """ Joins user to a room """
 
-    room = data["room"]
-    user = session["user"]
-
-    channel = channels[room]
-    channel["users"].append(user)
+    room = data["channel"]
     join_room(room)
+
+    user = session["user"]
+    rooms[room]["users"].append(user)
+    users[user]["room"] = room
 
     emit("channel joined",
          {"user": user, "channel": room}, room=room)
@@ -108,31 +113,35 @@ def on_join(data):
 @socketio.on("leave")
 def on_leave(data):
     """ Remove user from a room """
-    room = data["room"]
-    user = session["user"]
-
-    channel = channels[room]
-    channel["users"].remove(user)
-
+    room = data["channel"]
     leave_room(room)
+
+    user = session["user"]
+    rooms[room]["users"].remove(user)
+    del users[user]["room"]
 
     emit("channel left",
          {"user": user, "channel": room}, room=room)
 
 
-@app.route("/channel_space", methods=["POST"])
+@app.route("/channel_space")
 def channel_space():
     """ Displays channel page """
-    channel = request.form.get("channel")
-    members = channels[channel]["users"]
-    messages = channels[channel]["messages"]
+    room = users[session["user"]]["room"]
+    members = rooms[room]["users"]
+    messages = rooms[room]["messages"]
 
-    return render_template("channel.html", channel=channel,
+    color = {}
+
+    for user in users:
+        color[user] = users[user]["color"]
+
+    return render_template("channel.html", channel=room,
                            members=members, messages=messages,
-                           hexcode=users)
+                           color=color)
 
 
-@socketio.on("message sent")
+@ socketio.on("message sent")
 def msg_sent(data):
     """ Send message of the user to correct room """
     content = data["message"]
@@ -150,33 +159,42 @@ def msg_sent(data):
         "content": content
     }
 
-    color_code = users[session["user"]]
+    color = users[session["user"]]["color"]
+    if len(rooms[room]["messages"]) > 100:
+        rooms[room]["messages"].pop(0)
 
-    channel = channels[room]
-    if len(channel["messages"]) > 10:
-        print(channel["messages"])
-        channel["messages"].pop(0)
-
-    channel["messages"].append(message)
+    rooms[room]["messages"].append(message)
     emit("message received", {"message": message,
-                              "hexcode": color_code}, room=room)
+                              "hexcode": color}, room=room)
 
 
-@ socketio.on("disconnect")
+@socketio.on("connect")
+def connect():
+    """ When a user connects to socket add it to his/her previously joined room """
+    print("======================================")
+    print("SID: ", request.sid, "User: ", session["user"], "connected!")
+    print("======================================")
+
+    user = session["user"]
+    if not users[user].get("room") is None:
+        room = users[user]["room"]
+        join_room(room)
+        rooms[room]["users"].append(user)
+        emit("channel joined",
+             {"user": user, "channel": room}, room=room)
+
+
+@socketio.on("disconnect")
 def disconnect():
     """ Removes user on disconnect form user list of channel """
     print("======================================")
     print("SID: ", request.sid, "User: ", session["user"], "disconnected!")
     print("======================================")
+
     user = session["user"]
-    usr_present_room = None
 
-    for channel in channels:
-        room = channels[channel]
-        if user in room["users"]:
-            usr_present_room = channel
-            room["users"].remove(user)
-            break
-
-    emit("channel left",
-         {"user": user, "channel": usr_present_room}, room=usr_present_room)
+    if not users[user].get("room") is None:
+        if user in rooms[users[user]["room"]]["users"]:
+            rooms[users[user]["room"]]["users"].remove(user)
+            emit("channel left",
+                 {"user": user, "channel": users[user]["room"]}, room=users[user]["room"])
