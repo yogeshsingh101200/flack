@@ -1,17 +1,17 @@
 """ Controller for flack web app """
 
-import os
-
 from datetime import datetime
 
 from flask import Flask, render_template, session, redirect, request
 from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask_session import Session
 
 from helpers import signin_required, random_hex_darkcolor
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
-socketio = SocketIO(app)
+app.config["SESSION_TYPE"] = "filesystem"
+Session(app)
+socketio = SocketIO(app, manage_session=False)
 
 # dictionary of users
 # keys = user name and value = {
@@ -26,12 +26,6 @@ users = {}
 #   key messages value message dict list
 # }
 rooms = {}
-
-
-@app.before_request
-def make_permanent_session():
-    """ Makes flask sessions permanent """
-    session.permanent = True
 
 
 @app.route("/")
@@ -62,8 +56,8 @@ def signin():
     return redirect("/")
 
 
-@ app.route("/signout")
-@ signin_required
+@app.route("/signout")
+@signin_required
 def signout():
     """ Sign out a user """
 
@@ -74,7 +68,8 @@ def signout():
     return redirect("/signin")
 
 
-@ socketio.on("add channel")
+@socketio.on("add channel")
+@signin_required
 def add_channel(data):
     """ Adds a channel """
 
@@ -96,6 +91,7 @@ def add_channel(data):
 
 
 @socketio.on("join")
+@signin_required
 def on_join(data):
     """ Joins user to a room """
 
@@ -111,6 +107,7 @@ def on_join(data):
 
 
 @socketio.on("leave")
+@signin_required
 def on_leave(data):
     """ Remove user from a room """
     room = data["channel"]
@@ -125,6 +122,7 @@ def on_leave(data):
 
 
 @app.route("/channel_space")
+@signin_required
 def channel_space():
     """ Displays channel page """
     room = users[session["user"]]["room"]
@@ -141,7 +139,8 @@ def channel_space():
                            color=color)
 
 
-@ socketio.on("message sent")
+@socketio.on("message sent")
+@signin_required
 def msg_sent(data):
     """ Send message of the user to correct room """
     content = data["message"]
@@ -169,6 +168,7 @@ def msg_sent(data):
 
 
 @socketio.on("connect")
+@signin_required
 def connect():
     """ When a user connects to socket add it to his/her previously joined room """
     print("======================================")
@@ -185,6 +185,7 @@ def connect():
 
 
 @socketio.on("disconnect")
+@signin_required
 def disconnect():
     """ Removes user on disconnect form user list of channel """
     print("======================================")
@@ -192,7 +193,6 @@ def disconnect():
     print("======================================")
 
     user = session["user"]
-
     if not users[user].get("room") is None:
         if user in rooms[users[user]["room"]]["users"]:
             rooms[users[user]["room"]]["users"].remove(user)
