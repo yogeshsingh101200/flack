@@ -108,9 +108,9 @@ def on_join(data):
 
 @socketio.on("leave")
 @signin_required
-def on_leave(data):
+def on_leave():
     """ Remove user from a room """
-    room = data["channel"]
+    room = users[session["user"]]["room"]
     leave_room(room)
 
     user = session["user"]
@@ -144,7 +144,7 @@ def channel_space():
 def msg_sent(data):
     """ Send message of the user to correct room """
     content = data["message"]
-    room = data["channel"]
+    room = users[session["user"]]["room"]
 
     # getting current date time
     date_time = datetime.now()
@@ -194,7 +194,6 @@ def disconnect():
 
     user = session["user"]
     if not users[user].get("room") is None:
-        if user in rooms[users[user]["room"]]["users"]:
-            rooms[users[user]["room"]]["users"].remove(user)
-            emit("channel left",
-                 {"user": user, "channel": users[user]["room"]}, room=users[user]["room"])
+        rooms[users[user]["room"]]["users"].remove(user)
+        emit("channel left",
+             {"user": user, "channel": users[user]["room"]}, room=users[user]["room"])
