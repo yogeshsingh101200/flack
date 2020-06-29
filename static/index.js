@@ -75,9 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     ele.disabled = false;
                     ele.classList.remove("active");
 
-                    socket.emit("leave", {
-                        "channel": current_channel
-                    });
+                    socket.emit("leave");
                     document.querySelector("#channel-space").innerHTML = "";
                 }
                 socket.emit("join", {
@@ -166,8 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // When user sends a message
         document.querySelector("#message-form").onsubmit = () => {
             socket.emit("message sent", {
-                "message": document.querySelector("#message").value,
-                "channel": current_channel
+                "message": document.querySelector("#message").value
             });
 
             document.querySelector("#message").value = "";
@@ -180,9 +177,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function listen_leave_channel() {
         document.querySelector("#leave").onclick = () => {
-            socket.emit("leave", {
-                "channel": current_channel
-            });
+            socket.emit("leave");
 
             const ele = document.querySelector(`#${current_channel}`);
             ele.disabled = false;
