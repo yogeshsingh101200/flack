@@ -3,8 +3,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // Connect to websocket
     var socket = io.connect(location.protocol + "//" + document.domain + ":" + location.port);
 
-    var current_channel = null;
-
     // By default, submit button is disabled
     document.querySelector("#btn-create-channel").disabled = true;
 
@@ -59,13 +57,38 @@ document.addEventListener("DOMContentLoaded", () => {
         // Add button to channel list
         document.querySelector("#channel-list").append(button);
 
-        // Get updated channel list
-        get_channels();
+        updateHeightOfChannelList();
+
+        // Add listener to button
+        button.onclick = reactOnClickOnChannel;
     });
 
-    function get_channels() {
+    function reactOnClickOnChannel() {
 
-        // Join channel room when user clicks on it
+        // Leave channel if there is any previously joined channel
+        socket.emit("leave", response => {
+            if (response.success) {
+                const ele = document.querySelector(`#${response.room}`);
+                ele.disabled = false;
+                ele.classList.remove("active");
+                document.querySelector("#channel-space").innerHTML = "";
+            }
+        });
+
+        // Join new channel
+        socket.emit("join", {
+            "channel": this.innerHTML
+        }, response => {
+            if (!response.success) {
+                alert(response.reason);
+            }
+            else {
+                join_channel(response);
+            }
+        });
+    }
+
+    function updateHeightOfChannelList() {
         buttons = document.querySelectorAll("#channel-list > button");
 
         if (buttons.length > 5) {
@@ -74,34 +97,15 @@ document.addEventListener("DOMContentLoaded", () => {
         else {
             document.querySelector("#channel-list").style.height = "auto";
         }
+    }
+
+    function get_channels() {
+        updateHeightOfChannelList();
+
+        buttons = document.querySelectorAll("#channel-list > button");
 
         buttons.forEach(button => {
-            button.onclick = function () {
-
-                if (current_channel) {
-                    socket.emit("leave", (response) => {
-                        if (!response.success) {
-                            alert(response.reason);
-                        }
-                        else {
-                            const ele = document.querySelector(`#${response.room}`);
-                            ele.disabled = false;
-                            ele.classList.remove("active");
-                            document.querySelector("#channel-space").innerHTML = "";
-                        }
-                    });
-                }
-                socket.emit("join", {
-                    "channel": this.innerHTML
-                }, response => {
-                    if (!response.success) {
-                        alert(response.reason);
-                    }
-                    else {
-                        join_channel(response);
-                    }
-                });
-            };
+            button.onclick = reactOnClickOnChannel;
         });
     }
 
@@ -109,7 +113,6 @@ document.addEventListener("DOMContentLoaded", () => {
     get_channels();
 
     function join_channel(data) {
-        current_channel = data.channel;
         const ele = document.querySelector(`#${data.channel}`);
         ele.classList.add("active");
         ele.disabled = true;
@@ -159,14 +162,10 @@ document.addEventListener("DOMContentLoaded", () => {
     function listen_leave_channel() {
         document.querySelector("#leave").onclick = () => {
             socket.emit("leave", response => {
-                if (!response.success) {
-                    alert(response.reason);
-                }
-                else {
+                if (response.success) {
                     const ele = document.querySelector(`#${response.room}`);
                     ele.disabled = false;
                     ele.classList.remove("active");
-                    current_channel = null;
                     document.querySelector("#channel-space").innerHTML = "";
                 }
             });
@@ -180,7 +179,7 @@ document.addEventListener("DOMContentLoaded", () => {
             bottomScrolled = isScrolledToBottom(element);
 
             const li = document.createElement("li");
-            li.innerHTML = `[ ${data.user} joined ${data.channel} ]`;
+            li.innerHTML = `[${data.user} joined ${data.channel} ]`;
             li.classList.add("text-center");
             document.querySelector("#messages").append(li);
 
@@ -200,7 +199,7 @@ document.addEventListener("DOMContentLoaded", () => {
         bottomScrolled = isScrolledToBottom(element);
 
         const li = document.createElement("li");
-        li.innerHTML = `[ ${data.user} has left ${data.channel} ]`;
+        li.innerHTML = `[${data.user} has left ${data.channel} ]`;
         li.classList.add("text-center");
         document.querySelector("#messages").append(li);
         removeMember(data.user);
@@ -222,11 +221,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const element = document.querySelector("#msg-wrapper");
         bottomScrolled = isScrolledToBottom(element);
 
-        const template = `<small>${data.message.date} ${data.message.time}</small>
-                <p>
-                    <span class="usr-name" data-color="${data.color}">${data.message.by}</span>
+        const template = `< small > ${data.message.date} ${data.message.time}</small >
+        <p>
+            <span class="usr-name" data-color="${data.color}">${data.message.by}</span>
                     : ${data.message.content}
-                </p>`;
+        </p>`;
 
         // Creating message for list of messages
         const li = document.createElement("li");
