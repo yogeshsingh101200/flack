@@ -1,7 +1,5 @@
 """ Controller for flack web app """
 
-import copy
-
 from datetime import datetime
 
 from flask import Flask, render_template, session, redirect, request
@@ -28,6 +26,12 @@ users = {}
 #   key messages value message dict list
 # }
 rooms = {}
+
+# Message id dictionary
+# keeps the count of number of messages
+counter = {
+    "msg_id": 0
+}
 
 
 @app.route("/")
@@ -113,14 +117,13 @@ def on_join(data):
         return {"success": False,
                 "reason": "You are already present in another room, leave that first!"}
 
-    members = copy.deepcopy(rooms[room]["users"])
-    messages = rooms[room]["messages"]
-
     join_room(room)
     rooms[room]["users"].append(session["user"])
     users[session["user"]]["room"] = room
 
     # Channel space for user
+    members = rooms[room]["users"]
+    messages = rooms[room]["messages"]
     color = {}
 
     for user in users:
@@ -130,7 +133,7 @@ def on_join(data):
                                     members=members, messages=messages,
                                     color=color)
     emit("channel joined",
-         {"user": session["user"], "channel": room}, room=room)
+         {"user": session["user"], "channel": room}, skip_sid=request.sid, room=room)
 
     return {"success": True, "user": session["user"],
             "channel": room, "channel_space": channel_space}
@@ -168,7 +171,9 @@ def msg(data):
     current_date = date_time.strftime("%d-%m-%Y")
     current_time = date_time.strftime("%I:%M:%S %p")
 
+    counter["msg_id"] += 1
     message = {
+        "id": counter["msg_id"],
         "by": session["user"],
         "date": current_date,
         "time": current_time,
@@ -186,6 +191,33 @@ def msg(data):
         "color": users[session["user"]]["color"]
     }
     send(reply, room=room)
+
+
+@socketio.on("delete message")
+def del_msg(data):
+    """ Deletes user message """
+    msg_id = data["msg_id"]
+
+    print("="*15)
+    print(type(data['msg_id']))
+    print(data["msg_id"])
+    print(msg_id)
+    print("="*15)
+
+    room = users[session["user"]]["room"]
+    messages = rooms[room]["messages"]
+
+    print(messages)
+
+    for message in messages:
+        if message["id"] == msg_id and message["by"] == session["user"]:
+            messages.remove(message)
+            emit("message removed", {
+                "msg_id": msg_id,
+            }, room=room)
+        else:
+            return {"success": False, "reason": "Message not found"}
+    return {"success": True}
 
 
 @socketio.on("connect")

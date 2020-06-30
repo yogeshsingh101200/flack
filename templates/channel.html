@@ -21,11 +21,15 @@
 <div id="msg-wrapper" class="overflow-auto mx-1 my-1 p-0">
     <ul id="messages" class="m-0 py-0 px-1">
         {% for message in messages %}
-        <li class="msg">
+        <li class="msg mb-1">
             <small>{{message.date}} {{message.time}}</small>
-            <p>
-                <span class="usr-name" data-color="{{ color[message.by] }}">{{message.by}}</span>: {{message.content}}
+            <p class="mb-0">
+                <span class="usr-name" data-color="{{ color[message.by] }}">{{message.by}}</span>:
+                <span class="msg-content">{{message.content}}</span>
             </p>
+            <small class="delete-msg">
+                <a data-id="{{message.id}}" href="#">delete</a>
+            </small>
         </li>
         {% endfor %}
     </ul>

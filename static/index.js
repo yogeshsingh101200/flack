@@ -131,6 +131,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Add colors to user names
         addColors(document.querySelectorAll(".usr-name"));
+
+        // Listenes for delete msg
+        document.querySelectorAll(".msg > .delete-msg").forEach(msg => {
+            msg.querySelector("a").onclick = deleteMsg;
+        });
     }
 
     function listen_for_msg_sending() {
@@ -174,24 +179,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     socket.on("channel joined", data => {
         // Notifies members of a channel when a user joins
-        setTimeout(() => {
-            const element = document.querySelector("#msg-wrapper");
-            bottomScrolled = isScrolledToBottom(element);
+        const element = document.querySelector("#msg-wrapper");
+        bottomScrolled = isScrolledToBottom(element);
 
-            const li = document.createElement("li");
-            li.innerHTML = `[${data.user} joined ${data.channel} ]`;
-            li.classList.add("text-center");
-            document.querySelector("#messages").append(li);
+        const li = document.createElement("li");
+        li.innerHTML = `[${data.user} joined ${data.channel} ]`;
+        li.classList.add("text-center");
+        document.querySelector("#messages").append(li);
 
-            updateScroll(element, bottomScrolled);
-        }, 0);
+        updateScroll(element, bottomScrolled);
 
         // Add member to member list
-        setTimeout(() => {
-            const li = document.createElement("li");
-            li.innerHTML = data.user;
-            document.querySelector("#memberList").append(li);
-        }, 0);
+        const member = document.createElement("li");
+        member.innerHTML = data.user;
+        document.querySelector("#memberList").append(member);
     });
 
     socket.on("channel left", data => {
@@ -222,14 +223,18 @@ document.addEventListener("DOMContentLoaded", () => {
         bottomScrolled = isScrolledToBottom(element);
 
         const template = `<small> ${data.message.date} ${data.message.time}</small >
-        <p>
-            <span class="usr-name" data-color="${data.color}">${data.message.by}</span>
-                    : ${data.message.content}
-        </p>`;
+        <p class="mb-0">
+            <span class="usr-name" data-color="${data.color}">${data.message.by}</span>:
+            <span class="msg-content">${data.message.content}</span>
+        </p>
+        <small class="delete-msg">
+            <a data-id="${data.message.id}" href="#">delete</a>
+        </small>`;
 
         // Creating message for list of messages
         const li = document.createElement("li");
         li.setAttribute("class", "msg");
+        li.classList.add("mb-1");
         li.innerHTML = template;
 
         // Add color to user name
@@ -238,6 +243,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Adding to list of messages
         document.querySelector("#messages").append(li);
+
+        // Listen for delete message
+        li.querySelector(".delete-msg > a").onclick = deleteMsg;
 
         updateScroll(element, bottomScrolled);
     });
@@ -256,6 +264,19 @@ document.addEventListener("DOMContentLoaded", () => {
         elementList.forEach(element => {
             element.style.color = element.dataset.color;
         });
+    }
+
+    function deleteMsg() {
+        socket.emit("delete message", {
+            "msg_id": parseInt(this.dataset.id)
+        }, response => {
+            if (!response.success) {
+                alert(response.reason);
+            } else {
+                this.parentElement.parentElement.innerHTML = "[message deleted]";
+            }
+        });
+        return false;
     }
 
     window.addEventListener("beforeunload", () => {
