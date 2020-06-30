@@ -1,5 +1,7 @@
 """ Controller for flack web app """
 
+import copy
+
 from datetime import datetime
 
 from flask import Flask, render_template, session, redirect, request
@@ -77,17 +79,15 @@ def add_channel(data):
     room = data["channel"].lower()
 
     if len(room) == 0:
-        emit("channel created", {"success": False}, broadcast=True)
-    else:
-        if room in rooms:
-            emit("channel created", {"success": False}, broadcast=True)
-        else:
-            rooms[room] = {
-                "users": [],
-                "messages": []
-            }
-            emit("channel created", {"success": True,
-                                     "channel": room}, broadcast=True)
+        return {"success": False, "reason": "Invalid channel name!"}
+    if room in rooms:
+        return {"success": False, "reason": "Channel already exists!"}
+    rooms[room] = {
+        "users": [],
+        "messages": []
+    }
+    emit("channel created", {"channel": room}, broadcast=True)
+    return {"success": True}
 
 
 @socketio.on("join")
@@ -95,21 +95,55 @@ def add_channel(data):
 def on_join(data):
     """ Joins user to a room """
 
-    room = data["channel"]
+    if data.get("channel") is None:
+        if users[session["user"]].get("room"):
+            room = users[session["user"]]["room"]
+        else:
+            return {"success": False, "reason": "Room is None!"}
+    else:
+        room = data["channel"]
+
+    if not room in rooms:
+        return {"success": False, "reason": "No such room!"}
+
+    if session["user"] in rooms[room]["users"]:
+        return {"success": False, "reason": "You are already present in room!"}
+
+    if users[session["user"]].get("room") and not room == users[session["user"]]["room"]:
+        return {"success": False,
+                "reason": "You are already present in another room, leave that first!"}
+
+    members = copy.deepcopy(rooms[room]["users"])
+    messages = rooms[room]["messages"]
+
     join_room(room)
+    rooms[room]["users"].append(session["user"])
+    users[session["user"]]["room"] = room
 
-    user = session["user"]
-    rooms[room]["users"].append(user)
-    users[user]["room"] = room
+    # Channel space for user
+    color = {}
 
+    for user in users:
+        color[user] = users[user]["color"]
+
+    channel_space = render_template("channel.html", channel=room,
+                                    members=members, messages=messages,
+                                    color=color)
     emit("channel joined",
-         {"user": user, "channel": room}, room=room)
+         {"user": session["user"], "channel": room}, room=room)
+
+    return {"success": True, "user": session["user"],
+            "channel": room, "channel_space": channel_space}
 
 
 @socketio.on("leave")
 @signin_required
 def on_leave():
     """ Remove user from a room """
+
+    if users[session["user"]].get("room") is None:
+        return {"success": False}
+
     room = users[session["user"]]["room"]
     leave_room(room)
 
@@ -119,24 +153,7 @@ def on_leave():
 
     emit("channel left",
          {"user": user, "channel": room}, room=room)
-
-
-@app.route("/channel_space")
-@signin_required
-def channel_space():
-    """ Displays channel page """
-    room = users[session["user"]]["room"]
-    members = rooms[room]["users"]
-    messages = rooms[room]["messages"]
-
-    color = {}
-
-    for user in users:
-        color[user] = users[user]["color"]
-
-    return render_template("channel.html", channel=room,
-                           members=members, messages=messages,
-                           color=color)
+    return {"success": True, "room": room}
 
 
 @socketio.on("message")
@@ -178,14 +195,6 @@ def connect():
     print("======================================")
     print("SID: ", request.sid, "User: ", session["user"], "connected!")
     print("======================================")
-
-    user = session["user"]
-    if not users[user].get("room") is None:
-        room = users[user]["room"]
-        join_room(room)
-        rooms[room]["users"].append(user)
-        emit("channel joined",
-             {"user": user, "channel": room}, room=room)
 
 
 @socketio.on("disconnect")
