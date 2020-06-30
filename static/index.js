@@ -221,7 +221,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const element = document.querySelector("#msg-wrapper");
         bottomScrolled = isScrolledToBottom(element);
 
-        const template = `< small > ${data.message.date} ${data.message.time}</small >
+        const template = `<small> ${data.message.date} ${data.message.time}</small >
         <p>
             <span class="usr-name" data-color="${data.color}">${data.message.by}</span>
                     : ${data.message.content}
