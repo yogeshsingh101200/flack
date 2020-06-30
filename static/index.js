@@ -19,6 +19,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // When sockets get connected
     socket.on("connect", () => {
 
+        socket.emit("join", { "channel": null }, response => {
+            if (response.success) {
+                join_channel(response);
+            }
+        });
+
         // When user adds a channel
         document.querySelector("#create-channel-form").onsubmit = () => {
 
@@ -28,6 +34,14 @@ document.addEventListener("DOMContentLoaded", () => {
             // Send selected channel to server
             socket.emit("add channel", {
                 "channel": channel
+            }, response => {
+                if (!response.success) {
+                    alert(response.reason);
+                } else {
+                    // Clears input field and disables submit button
+                    document.querySelector("#channel-name").value = "";
+                    document.querySelector("#btn-create-channel").disabled = true;
+                }
             });
 
             // Prevents form from submitting to server through server
@@ -36,23 +50,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     socket.on("channel created", data => {
-        if (data.success) {
-            // Create channel join button
-            const button = document.createElement("button");
-            button.setAttribute("id", data.channel);
-            button.setAttribute("class", "dropdown-item");
-            button.innerHTML = data.channel;
+        // Create channel join button
+        const button = document.createElement("button");
+        button.setAttribute("id", data.channel);
+        button.setAttribute("class", "dropdown-item");
+        button.innerHTML = data.channel;
 
-            // Add button to channel list
-            document.querySelector("#channel-list").append(button);
+        // Add button to channel list
+        document.querySelector("#channel-list").append(button);
 
-            // Clears input field and disables submit button
-            document.querySelector("#channel-name").value = "";
-            document.querySelector("#btn-create-channel").disabled = true;
-
-            // Gets updated channel list
-            get_channels();
-        }
+        // Get updated channel list
+        get_channels();
     });
 
     function get_channels() {
@@ -71,17 +79,28 @@ document.addEventListener("DOMContentLoaded", () => {
             button.onclick = function () {
 
                 if (current_channel) {
-                    const ele = document.querySelector(`#${current_channel}`);
-                    ele.disabled = false;
-                    ele.classList.remove("active");
-
-                    socket.emit("leave");
-                    document.querySelector("#channel-space").innerHTML = "";
+                    socket.emit("leave", (response) => {
+                        if (!response.success) {
+                            alert(response.reason);
+                        }
+                        else {
+                            const ele = document.querySelector(`#${response.room}`);
+                            ele.disabled = false;
+                            ele.classList.remove("active");
+                            document.querySelector("#channel-space").innerHTML = "";
+                        }
+                    });
                 }
                 socket.emit("join", {
                     "channel": this.innerHTML
+                }, response => {
+                    if (!response.success) {
+                        alert(response.reason);
+                    }
+                    else {
+                        join_channel(response);
+                    }
                 });
-                this.disabled = true;
             };
         });
     }
@@ -89,65 +108,27 @@ document.addEventListener("DOMContentLoaded", () => {
     // Get already created channels
     get_channels();
 
-    socket.on("channel joined", data => {
+    function join_channel(data) {
+        current_channel = data.channel;
+        const ele = document.querySelector(`#${data.channel}`);
+        ele.classList.add("active");
+        ele.disabled = true;
 
-        if (!document.querySelector("#messages")) {
-            current_channel = data.channel;
-            const ele = document.querySelector(`#${current_channel}`);
-            ele.classList.add("active");
-            ele.disabled = true;
+        // Adds channel.html content to document
+        document.querySelector("#channel-space").innerHTML = data.channel_space;
 
-            // Requests server for channel.html
-            const request = new XMLHttpRequest();
-            request.open("GET", "/channel_space");
+        // Listen for user message sent
+        listen_for_msg_sending();
 
-            // On successful request
-            request.onload = () => {
+        // Listen for leave channel
+        listen_leave_channel();
 
-                // Adds channel.html content to document
-                document.querySelector("#channel-space").innerHTML = request.responseText;
+        // Scolls all the messages till bottom
+        updateScroll(document.querySelector("#msg-wrapper"), true);
 
-                usr_joined_alert();
-
-                // Listen for user message sent
-                listen_for_msg_sending();
-
-                // Listen for leave channel
-                listen_leave_channel();
-
-                updateScroll(document.querySelector("#msg-wrapper"), true);
-
-                addColors(document.querySelectorAll(".usr-name"));
-            };
-
-            // Sends Request
-            request.send();
-        }
-        else {
-            usr_joined_alert();
-
-            // Listen for user message sent
-            listen_for_msg_sending();
-
-            // Listen for leave channel
-            listen_leave_channel();
-
-            addMember(data.user);
-        }
-
-        // Notifies members of a channel when a user joins
-        function usr_joined_alert() {
-            const element = document.querySelector("#msg-wrapper");
-            bottomScrolled = isScrolledToBottom(element);
-
-            const li = document.createElement("li");
-            li.innerHTML = `[ ${data.user} joined ${current_channel} ]`;
-            li.classList.add("text-center");
-            document.querySelector("#messages").append(li);
-
-            updateScroll(element, bottomScrolled);
-        }
-    });
+        // Add colors to user names
+        addColors(document.querySelectorAll(".usr-name"));
+    }
 
     function listen_for_msg_sending() {
         // By default, submit button is disabled
@@ -177,21 +158,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function listen_leave_channel() {
         document.querySelector("#leave").onclick = () => {
-            socket.emit("leave");
-
-            const ele = document.querySelector(`#${current_channel}`);
-            ele.disabled = false;
-            ele.classList.remove("active");
-            current_channel = null;
-            document.querySelector("#channel-space").innerHTML = "";
+            socket.emit("leave", response => {
+                if (!response.success) {
+                    alert(response.reason);
+                }
+                else {
+                    const ele = document.querySelector(`#${response.room}`);
+                    ele.disabled = false;
+                    ele.classList.remove("active");
+                    current_channel = null;
+                    document.querySelector("#channel-space").innerHTML = "";
+                }
+            });
         };
     }
 
-    function addMember(member) {
-        const li = document.createElement("li");
-        li.innerHTML = member;
-        document.querySelector("#memberList").append(li);
-    }
+    socket.on("channel joined", data => {
+        // Notifies members of a channel when a user joins
+        setTimeout(() => {
+            const element = document.querySelector("#msg-wrapper");
+            bottomScrolled = isScrolledToBottom(element);
+
+            const li = document.createElement("li");
+            li.innerHTML = `[ ${data.user} joined ${data.channel} ]`;
+            li.classList.add("text-center");
+            document.querySelector("#messages").append(li);
+
+            updateScroll(element, bottomScrolled);
+        }, 0);
+
+        // Add member to member list
+        setTimeout(() => {
+            const li = document.createElement("li");
+            li.innerHTML = data.user;
+            document.querySelector("#memberList").append(li);
+        }, 0);
+    });
 
     socket.on("channel left", data => {
         const element = document.querySelector("#msg-wrapper");
@@ -226,14 +228,19 @@ document.addEventListener("DOMContentLoaded", () => {
                     : ${data.message.content}
                 </p>`;
 
-        // Adding message to list of messages
+        // Creating message for list of messages
         const li = document.createElement("li");
         li.setAttribute("class", "msg");
         li.innerHTML = template;
+
+        // Add color to user name
+        const ele = li.querySelector(".usr-name");
+        ele.style.color = ele.dataset.color;
+
+        // Adding to list of messages
         document.querySelector("#messages").append(li);
 
         updateScroll(element, bottomScrolled);
-        addColors(document.querySelectorAll(".usr-name"));
     });
 
     function updateScroll(element, bottomScrolled) {
