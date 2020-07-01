@@ -222,14 +222,18 @@ document.addEventListener("DOMContentLoaded", () => {
         const element = document.querySelector("#msg-wrapper");
         bottomScrolled = isScrolledToBottom(element);
 
-        const template = `<small> ${data.message.date} ${data.message.time}</small >
+        var template = `<small> ${data.message.date} ${data.message.time}</small >
         <p class="mb-0">
             <span class="usr-name" data-color="${data.color}">${data.message.by}</span>:
             <span class="msg-content">${data.message.content}</span>
-        </p>
-        <small class="delete-msg">
-            <a data-id="${data.message.id}" href="#">delete</a>
-        </small>`;
+        </p>`;
+
+        if (this_user == data.message.by) {
+            var extra = `<small class="delete-msg">
+                    <a data-id="${data.message.id}" href="#">delete</a>
+                </small>`;
+            template += extra;
+        }
 
         // Creating message for list of messages
         const li = document.createElement("li");
@@ -245,7 +249,8 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelector("#messages").append(li);
 
         // Listen for delete message
-        li.querySelector(".delete-msg > a").onclick = deleteMsg;
+        if (this_user == data.message.by)
+            li.querySelector(".delete-msg > a").onclick = deleteMsg;
 
         updateScroll(element, bottomScrolled);
     });
@@ -268,16 +273,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function deleteMsg() {
         socket.emit("delete message", {
-            "msg_id": parseInt(this.dataset.id)
+            "msg_id": this.dataset.id
         }, response => {
             if (!response.success) {
                 alert(response.reason);
             } else {
-                this.parentElement.parentElement.innerHTML = "[message deleted]";
+                const element = this.parentElement.parentElement;
+                element.querySelector(".msg-content").innerHTML = "[message deleted]";
             }
         });
         return false;
     }
+
+    socket.on("message removed", data => {
+        document.querySelectorAll(".msg > .delete-msg > a").forEach(msg => {
+            if (msg.dataset.id === data.msg_id) {
+                const element = msg.parentElement.parentElement;
+                element.querySelector(".msg-content").innerHTML = "[message deleted]";
+            }
+        });
+    });
 
     window.addEventListener("beforeunload", () => {
         socket.disconnect();

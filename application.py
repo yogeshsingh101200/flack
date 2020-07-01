@@ -198,26 +198,19 @@ def del_msg(data):
     """ Deletes user message """
     msg_id = data["msg_id"]
 
-    print("="*15)
-    print(type(data['msg_id']))
-    print(data["msg_id"])
-    print(msg_id)
-    print("="*15)
-
     room = users[session["user"]]["room"]
     messages = rooms[room]["messages"]
 
-    print(messages)
-
-    for message in messages:
-        if message["id"] == msg_id and message["by"] == session["user"]:
-            messages.remove(message)
+    for idx, message in enumerate(messages):
+        if str(message["id"]) == msg_id and message["by"] == session["user"]:
+            messages[idx]["content"] = "[message deleted]"
+            # messages.remove(message)
             emit("message removed", {
                 "msg_id": msg_id,
-            }, room=room)
-        else:
-            return {"success": False, "reason": "Message not found"}
-    return {"success": True}
+            }, skip_sid=request.sid, room=room)
+            return {"success": True}
+
+    return {"success": False, "reason": "Message not found"}
 
 
 @socketio.on("connect")
