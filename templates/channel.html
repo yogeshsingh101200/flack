@@ -27,9 +27,11 @@
                 <span class="usr-name" data-color="{{ color[message.by] }}">{{message.by}}</span>:
                 <span class="msg-content">{{message.content}}</span>
             </p>
+            {% if session["user"] == message.by %}
             <small class="delete-msg">
                 <a data-id="{{message.id}}" href="#">delete</a>
             </small>
+            {% endif %}
         </li>
         {% endfor %}
     </ul>
