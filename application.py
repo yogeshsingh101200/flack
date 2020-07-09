@@ -191,6 +191,7 @@ def msg(data):
         "color": users[session["user"]]["color"]
     }
     send(reply, room=room)
+    return {"msg_id": str(message["id"])}
 
 
 @socketio.on("delete message")

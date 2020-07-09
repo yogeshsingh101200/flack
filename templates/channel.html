@@ -21,7 +21,7 @@
 <div id="msg-wrapper" class="overflow-auto mx-1 my-1 p-0">
     <ul id="messages" class="m-0 py-0 px-1">
         {% for message in messages %}
-        <li class="msg mb-1">
+        <li class="msg mb-1" data-id="{{message.id}}">
             <small>{{message.date}} {{message.time}}</small>
             <p class="mb-0">
                 <span class="usr-name" data-color="{{ color[message.by] }}">{{message.by}}</span>:
@@ -29,7 +29,7 @@
             </p>
             {% if session["user"] == message.by %}
             <small class="delete-msg">
-                <a data-id="{{message.id}}" href="#">delete</a>
+                <a href="#">delete</a>
             </small>
             {% endif %}
         </li>
