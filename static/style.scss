@@ -1,0 +1,36 @@
+@import "node_modules/bootstrap/scss/bootstrap.scss";
+
+li {
+    list-style: none;
+}
+
+.btn-usr-name:disabled {
+    opacity: 1;
+}
+
+.msg {
+    padding: 2px;
+    width: 100%;
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+#display-name {
+    color: black;
+}
+
+#channel-list > button {
+    font-size: large;
+}
+
+#channel-list > .active {
+    color: #fff;
+    text-decoration: none;
+    background-color: #007bff;
+}
+
+#msg-wrapper {
+    height: 55vh;
+}
