@@ -1,4 +1,35 @@
+$body-bg: #161625;
+$body-color: rgba(255, 255, 255, 0.5);
+
+$dropdown-link-color: rgba(255, 255, 255, 0.5);
+$dropdown-divider-bg: rgba(255, 255, 255, 0.5);
+
+$dropdown-link-hover-bg: #161625;
+$dropdown-link-hover-color: rgba(255, 255, 255, 0.7);
+$dropdown-link-active-bg: #161625;
+$dropdown-link-disabled-color: #fff;
+
+$theme-colors: (
+    "primary": #104f92,
+    "secondary": #1e1e30,
+    "success": #1e8335,
+    "info":#0a6a79,
+    "danger": #751922,
+    "light":rgba(255, 255, 255, 0.5),
+    "dark": #161625
+);
+
+$channel-bg-color: #1e1e30;
+
 @import "node_modules/bootstrap/scss/bootstrap.scss";
+
+body {
+    height: 100vh;
+}
+
+.channel {
+    background-color: $channel-bg-color;
+}
 
 li {
     list-style: none;
@@ -26,11 +57,5 @@ li {
 }
 
 #channel-list > .active {
-    color: #fff;
-    text-decoration: none;
-    background-color: #007bff;
-}
-
-#msg-wrapper {
-    height: 55vh;
+    background-color: #161625;
 }
