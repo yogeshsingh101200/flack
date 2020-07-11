@@ -26,20 +26,21 @@
     <script src="https://kit.fontawesome.com/977ea8e001.js" crossorigin="anonymous"></script>
 </head>
 
-<body>
-    <nav class="navbar navbar-light" style="background-color: #ededed;">
-        <a class="navbar-brand" href="{{url_for('index')}}">
-            <img src="{{url_for('static', filename='favicon.ico')}}" width="30" height="30"
-                class="d-inline-block align-top" alt="" loading="lazy">
+<body class="d-flex flex-column">
+    <nav class="navbar navbar-expand navbar-dark bg-dark">
+        <a class="navbar-brand text-light" href="{{url_for('index')}}">
             Flack
         </a>
         {% if session.get("user") %}
-        <ul class="nav">
+        <ul class="navbar-nav mr-auto">
+            {% block navitem%}
+            {% endblock %}
+        </ul>
+        <ul class="navbar-nav ml-auto">
             <li class="nav-item">
-                <button class="btn btn-outline-dark btn-usr-name" disabled>{{session["user"]}}</button>
+                <button class="btn btn-outline-light btn-usr-name text-uppercase" disabled>{{session["user"]}}</button>
             </li>
         </ul>
-        <!-- <span class="navbar-text text-capitalize" id="display-name">Hey, {{session["user"]}}!</span>-->
         {% endif %}
     </nav>
     {% block body %}
