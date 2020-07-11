@@ -91,8 +91,8 @@ document.addEventListener("DOMContentLoaded", () => {
     function updateHeightOfChannelList() {
         buttons = document.querySelectorAll("#channel-list > button");
 
-        if (buttons.length > 5) {
-            document.querySelector("#channel-list").style.height = "25vh";
+        if (buttons.length > 13) {
+            document.querySelector("#channel-list").style.height = "65vh";
         }
         else {
             document.querySelector("#channel-list").style.height = "auto";
