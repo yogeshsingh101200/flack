@@ -6,7 +6,7 @@ from flask import Flask, render_template, session, redirect, request
 from flask_socketio import SocketIO, send, emit, join_room, leave_room
 from flask_session import Session
 
-from helpers import signin_required, random_hex_darkcolor
+from helpers import signin_required, random_hex_lightcolor
 
 app = Flask(__name__)
 app.config["SESSION_TYPE"] = "filesystem"
@@ -52,7 +52,7 @@ def signin():
     if user in users:
         return "name taken"
 
-    color = random_hex_darkcolor()
+    color = random_hex_lightcolor()
 
     users[user] = {
         "color": color
