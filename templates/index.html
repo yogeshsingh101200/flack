@@ -4,40 +4,37 @@
 Channels
 {% endblock %}
 
-{% block body %}
-<div class="container">
-    <div class="row mt-2 mx-2">
-        <div class="dropdown dropright">
-            <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown"
-                aria-haspopup="true" aria-expanded="false">
-                Channels
-            </button>
-            <div class="dropdown-menu" aria-labelledby="dropdownMenu2" style="width: max-content;">
-                <form id="create-channel-form" class="px-2 py-1">
-                    <div class="form-row">
-                        <div class="col-10">
-                            <input id="channel-name" class="form-control form-control-sm" type="text"
-                                placeholder="New channel" autofocus autocomplete="off">
-                        </div>
-                        <div class="col-2">
-                            <button id="btn-create-channel" class="btn btn btn-success btn-sm" type="submit">
-                                <span class="fas fa-plus"></span>
-                            </button>
-                        </div>
-                    </div>
-                </form>
-                <div class=" dropdown-divider">
+{% block navitem %}
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" role="button" id="dropdownMenu2" data-toggle="dropdown"
+        aria-haspopup="true" aria-expanded="false">
+        Channels
+    </a>
+    <div class="dropdown-menu bg-secondary" aria-labelledby="dropdownMenu2" style="width: max-content;">
+        <form id="create-channel-form" class="px-2 py-1">
+            <div class="form-row">
+                <div class="col-10">
+                    <input id="channel-name" class="form-control form-control-sm bg-dark border-dark" type="text"
+                        placeholder="New channel" autofocus autocomplete="off">
                 </div>
-                <div id="channel-list" class="overflow-auto" style="height: 25vh;">
-                    {% for channel in channels %}
-                    <button class="dropdown-item" id="{{channel}}">{{channel}}</button>
-                    {% endfor %}
+                <div class="col-2">
+                    <button id="btn-create-channel" class="btn btn btn-success btn-sm" type="submit">
+                        <span class="fas fa-plus"></span>
+                    </button>
                 </div>
             </div>
+        </form>
+        <div class=" dropdown-divider">
+        </div>
+        <div id="channel-list" class="overflow-auto" style="height: 65vh;">
+            {% for channel in channels %}
+            <button class="dropdown-item" id="{{channel}}">{{channel}}</button>
+            {% endfor %}
         </div>
     </div>
-    <div class="row mx-2 my-2 border">
-        <div id="channel-space" class="col px-0"></div>
-    </div>
-</div>
+</li>
+{% endblock %}
+
+{% block body %}
+<div id="channel-space" class="channel d-flex flex-column h-100 overflow-hidden mx-2 my-2 px-0"></div>
 {% endblock %}
