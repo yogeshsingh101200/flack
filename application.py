@@ -187,11 +187,19 @@ def msg(data):
     rooms[room]["messages"].append(message)
 
     reply = {
-        "message": message,
-        "color": users[session["user"]]["color"]
+        "message": render_template("message.html",
+                                   message=message,
+                                   color=users[session["user"]]["color"],
+                                   include_delete=False),
+        "msg_id": message["id"]
     }
-    send(reply, room=room)
-    return {"msg_id": str(message["id"])}
+    send(reply, skip_sid=request.sid, room=room)
+    return {
+        "message": render_template("message.html",
+                                   message=message,
+                                   color=users[session["user"]]["color"],
+                                   include_delete=True)
+    }
 
 
 @socketio.on("delete message")

@@ -133,8 +133,8 @@ document.addEventListener("DOMContentLoaded", () => {
         addColors(document.querySelectorAll(".usr-name"));
 
         // Listenes for delete msg
-        document.querySelectorAll(".msg > .delete-msg").forEach(msg => {
-            msg.querySelector("a").onclick = deleteMsg;
+        document.querySelectorAll(".msg .delete-msg").forEach(msg => {
+            msg.onclick = deleteMsg;
         });
     }
 
@@ -158,16 +158,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 const element = document.querySelector("#msg-wrapper");
                 bottomScrolled = isScrolledToBottom(element);
 
-                const li = document.querySelector(`[data-id="${response.msg_id}"]`);
+                // Creating message for list of messages
+                const li = document.createElement("li");
+                li.setAttribute("class", "d-flex flex-column align-items-end mb-1");
+                li.innerHTML = response.message;
 
-                const deleteLink = `<small class="delete-msg">
-                    <a href="#">delete</a>
-                </small>`;
+                // Adding to list of messages
+                document.querySelector("#messages").append(li);
 
-                li.innerHTML += deleteLink;
+                // Add color to user name
+                const ele = li.querySelector(".usr-name");
+                ele.style.color = ele.dataset.color;
 
                 // Listen for delete message
-                li.querySelector(".delete-msg > a").onclick = deleteMsg;
+                li.querySelector(".delete-msg").onclick = deleteMsg;
 
                 updateScroll(element, bottomScrolled);
             });
@@ -238,25 +242,17 @@ document.addEventListener("DOMContentLoaded", () => {
         const element = document.querySelector("#msg-wrapper");
         bottomScrolled = isScrolledToBottom(element);
 
-        var template = `<small> ${data.message.date} ${data.message.time}</small >
-        <p class="mb-0">
-            <span class="usr-name" data-color="${data.color}">${data.message.by}</span>:
-            <span class="msg-content">${data.message.content}</span>
-        </p>`;
-
         // Creating message for list of messages
         const li = document.createElement("li");
-        li.setAttribute("class", "msg");
-        li.classList.add("mb-1");
-        li.setAttribute("data-id", data.message.id);
-        li.innerHTML = template;
+        li.setAttribute("class", "d-flex flex-column align-items-start mb-1");
+        li.innerHTML = data.message;
+
+        // Adding to list of messages
+        document.querySelector("#messages").append(li);
 
         // Add color to user name
         const ele = li.querySelector(".usr-name");
         ele.style.color = ele.dataset.color;
-
-        // Adding to list of messages
-        document.querySelector("#messages").append(li);
 
         updateScroll(element, bottomScrolled);
     });

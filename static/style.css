@@ -9926,8 +9926,12 @@ li {
 }
 
 .msg {
-  padding: 2px;
-  width: 100%;
+  width: max-content;
+  max-width: 55%;
+}
+
+.delete-msg {
+  font-size: small;
 }
 
 .navbar-brand {

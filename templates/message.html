@@ -1,0 +1,14 @@
+<div class="card msg bg-dark text-light" data-id="{{message.id}}">
+    <div class="card-body px-1 py-0">
+        <div class="card-title mx-1 my-1">
+            <span class="usr-name" data-color="{{color}}">{{message.by}}</span>
+            <small>{{message.date}} {{message.time}}</small>
+        </div>
+        <p class="card-text mx-1 my-1">
+            <span class="msg-content">{{message.content}}</span>
+        </p>
+        {% if include_delete %}
+        <a href="#" class="card-link delete-msg mx-1 my-1">delete</a>
+        {% endif %}
+    </div>
+</div>
