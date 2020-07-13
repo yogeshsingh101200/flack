@@ -21,6 +21,9 @@ $theme-colors: (
 
 $channel-bg-color: #1e1e30;
 
+$card-bg: #161625;
+$card-color: rgba(255, 255, 255, 0.5);
+
 @import "node_modules/bootstrap/scss/bootstrap.scss";
 
 body {
@@ -42,9 +45,10 @@ li {
 .msg {
     width: max-content;
     max-width: 55%;
+    transition: opacity 0.5s;
 }
 
-.delete-msg {
+.delete-msg, .reply-msg {
     font-size: small;
 }
 
@@ -63,3 +67,12 @@ li {
 #channel-list > .active {
     background-color: #161625;
 }
+
+.quote-msg {
+    font-size: 1em;
+    font-weight: normal;
+    width: 100%;
+}/*
+.reply-msg {
+    font-size: small;
+} */

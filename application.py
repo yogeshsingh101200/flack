@@ -190,10 +190,55 @@ def msg(data):
         "message": render_template("message.html",
                                    message=message,
                                    color=users[session["user"]]["color"],
-                                   include_delete=False),
-        "msg_id": message["id"]
+                                   include_delete=False)
     }
     send(reply, skip_sid=request.sid, room=room)
+    return {
+        "message": render_template("message.html",
+                                   message=message,
+                                   color=users[session["user"]]["color"],
+                                   include_delete=True)
+    }
+
+
+@socketio.on("reply")
+@signin_required
+def reply_msg(data):
+    """ Send message of the user to correct room """
+    content = data["reply"]
+    msg_id = int(data["msg_id"])
+    room = users[session["user"]]["room"]
+
+    # getting current date time
+    date_time = datetime.now()
+    current_date = date_time.strftime("%d-%m-%Y")
+    current_time = date_time.strftime("%I:%M:%S %p")
+
+    counter["msg_id"] += 1
+    message = {
+        "id": counter["msg_id"],
+        "by": session["user"],
+        "date": current_date,
+        "time": current_time,
+        "content": content
+    }
+
+    for a_msg in rooms[room]["messages"]:
+        if msg_id == a_msg["id"]:
+            message["quote_msg"] = a_msg
+
+    if len(rooms[room]["messages"]) > 100:
+        rooms[room]["messages"].pop(0)
+
+    rooms[room]["messages"].append(message)
+
+    reply = {
+        "message": render_template("message.html",
+                                   message=message,
+                                   color=users[session["user"]]["color"],
+                                   include_delete=False)
+    }
+    emit("replied", reply, skip_sid=request.sid, room=room)
     return {
         "message": render_template("message.html",
                                    message=message,

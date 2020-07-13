@@ -22,15 +22,28 @@
         {% if session["user"] == message.by %}
         <li class="d-flex flex-column align-items-end mb-1"> {% else %}
         <li class="d-flex flex-column align-items-start mb-1"> {% endif %}
-            <div class="card msg bg-dark text-light" data-id="{{message.id}}">
+            <div class="card msg" data-id="{{message.id}}" id="{{message.id}}">
                 <div class="card-body px-1 py-0">
                     <div class="card-title mx-1 my-1">
                         <span class="usr-name" data-color="{{color[message.by]}}">{{message.by}}</span>
                         <small>{{message.date}} {{message.time}}</small>
                     </div>
+                    {% if message.get("quote_msg") %}
+                    <a data-ref="{{message.quote_msg.id}}" onclick="jump(this)"
+                        class="quote-msg badge badge-secondary text-light text-left">
+                        <div class="card-body p-0">
+                            <div class="card-title">{{message.quote_msg.by}}</div>
+                            <p class="card-text">
+                                {{message.quote_msg.content}}
+                            </p>
+                        </div>
+                    </a>
+                    {% endif %}
                     <p class="card-text mx-1 my-1">
                         <span class="msg-content">{{message.content}}</span>
                     </p>
+                    <a href="#" class="card-link reply-msg mx-1 my-1" data-toggle="modal"
+                        data-target="#replyModal">reply</a>
                     {% if session["user"] == message.by %}
                     <a href="#" class="card-link delete-msg mx-1 my-1">delete</a>
                     {% endif %}
@@ -74,6 +87,36 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="replyModal" tabindex="-1" role="dialog" aria-labelledby="replyModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="replyModalLabel">Reply</h5>
+                <button id="close-reply" type="button" class="close text-light" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="quoted-msg mx-3 my-1">
+                </div>
+                <form id="message-reply-form" class="mx-2 my-2">
+                    <div class="form-row">
+                        <div class="col-sm-10">
+                            <input id="reply" class="form-control bg-secondary border-secondary text-light" name="reply"
+                                type="text" placeholder="reply..." autocomplete="off">
+                        </div>
+                        <div class="col-sm-2 mt-1 mt-md-0">
+                            <input id="send-reply" class="btn btn-primary btn-block" type="submit" value="Send">
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

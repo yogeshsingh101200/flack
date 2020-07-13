@@ -136,6 +136,11 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll(".msg .delete-msg").forEach(msg => {
             msg.onclick = deleteMsg;
         });
+
+        // Listenes for reply
+        document.querySelectorAll(".msg .reply-msg").forEach(msg => {
+            msg.onclick = replyMsg;
+        });
     }
 
     function listen_for_msg_sending() {
@@ -165,6 +170,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 // Adding to list of messages
                 document.querySelector("#messages").append(li);
+
+                // Listen for reply to message
+                li.querySelector(".reply-msg").onclick = replyMsg;
 
                 // Add color to user name
                 const ele = li.querySelector(".usr-name");
@@ -250,6 +258,9 @@ document.addEventListener("DOMContentLoaded", () => {
         // Adding to list of messages
         document.querySelector("#messages").append(li);
 
+        // Listen for reply message
+        li.querySelector(".reply-msg").onclick = replyMsg;
+
         // Add color to user name
         const ele = li.querySelector(".usr-name");
         ele.style.color = ele.dataset.color;
@@ -295,7 +306,112 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
+    function replyMsg() {
+        document.querySelector(".quoted-msg").innerHTML = "";
+        const ele = this.parentElement.cloneNode(true);
+        ele.removeChild(ele.querySelector(".reply-msg"));
+        document.querySelector(".quoted-msg").append(ele);
+
+        listen_for_reply(this.parentElement.parentElement.dataset.id);
+
+        // Wait for modal transition to complete
+        setTimeout(() => {
+            document.querySelector("#reply").focus();
+        }, 500);
+
+        return false;
+    }
+
+    function listen_for_reply(msgId) {
+
+        // By default, submit button is disabled
+        document.querySelector("#send-reply").disabled = true;
+
+        // Enable button only if there is text in the input field
+        document.querySelector("#reply").onkeyup = () => {
+            if (document.querySelector("#reply").value.length > 0)
+                document.querySelector("#send-reply").disabled = false;
+            else
+                document.querySelector("#send-reply").disabled = true;
+        };
+
+        // When user sends a message
+        document.querySelector("#message-reply-form").onsubmit = () => {
+            document.querySelector("#close-reply").click();
+
+            socket.emit("reply", {
+                "reply": document.querySelector("#reply").value,
+                "msg_id": msgId
+            }, response => {
+                const element = document.querySelector("#msg-wrapper");
+
+                // Creating message for list of messages
+                const li = document.createElement("li");
+                li.setAttribute("class", "d-flex flex-column align-items-end mb-1");
+                li.innerHTML = response.message;
+
+                // Adding to list of messages
+                document.querySelector("#messages").append(li);
+
+                // Listen for reply to message
+                li.querySelector(".reply-msg").onclick = replyMsg;
+
+                // Add color to user name
+                const ele = li.querySelector(".usr-name");
+                ele.style.color = ele.dataset.color;
+
+                // Listen for delete message
+                li.querySelector(".delete-msg").onclick = deleteMsg;
+
+                // Waits for completion of modal fade out transition
+                setTimeout(() => {
+                    updateScroll(element, true);
+                }, 300);
+            });
+
+            document.querySelector("#reply").value = "";
+            document.querySelector("#send-reply").disabled = true;
+
+            // Stops message from submitting through http (sockets to be used instead)
+            return false;
+        };
+    }
+
+    socket.on("replied", data => {
+        const element = document.querySelector("#msg-wrapper");
+        bottomScrolled = isScrolledToBottom(element);
+
+        // Creating message for list of messages
+        const li = document.createElement("li");
+        li.setAttribute("class", "d-flex flex-column align-items-start mb-1");
+        li.innerHTML = data.message;
+
+        // Adding to list of messages
+        document.querySelector("#messages").append(li);
+
+        // Listen for reply message
+        li.querySelector(".reply-msg").onclick = replyMsg;
+
+        // Add color to user name
+        const ele = li.querySelector(".usr-name");
+        ele.style.color = ele.dataset.color;
+
+        updateScroll(element, bottomScrolled);
+    });
+
     window.addEventListener("beforeunload", () => {
         socket.disconnect();
     });
 });
+
+function jump(ele) {
+    var url = location.href;
+    location.href = `#${ele.dataset.ref}`;
+    history.replaceState(null, null, url);
+    target = document.getElementById(ele.dataset.ref);
+    const original = target.style.opacity;
+    target.style.opacity = 0.5;
+    setTimeout(() => {
+        target.style.opacity = original;
+    }, 500);
+}

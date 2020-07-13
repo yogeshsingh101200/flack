@@ -4306,7 +4306,7 @@ input[type=button].btn-block {
   flex-direction: column;
   min-width: 0;
   word-wrap: break-word;
-  background-color: #fff;
+  background-color: #161625;
   background-clip: border-box;
   border: 1px solid rgba(0, 0, 0, 0.125);
   border-radius: 0.25rem;
@@ -4334,6 +4334,7 @@ input[type=button].btn-block {
   flex: 1 1 auto;
   min-height: 1px;
   padding: 1.25rem;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .card-title {
@@ -9928,9 +9929,10 @@ li {
 .msg {
   width: max-content;
   max-width: 55%;
+  transition: opacity 0.5s;
 }
 
-.delete-msg {
+.delete-msg, .reply-msg {
   font-size: small;
 }
 
@@ -9949,5 +9951,16 @@ li {
 #channel-list > .active {
   background-color: #161625;
 }
+
+.quote-msg {
+  font-size: 1em;
+  font-weight: normal;
+  width: 100%;
+}
+
+/*
+.reply-msg {
+    font-size: small;
+} */
 
 /*# sourceMappingURL=style.css.map */
