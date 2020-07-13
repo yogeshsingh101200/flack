@@ -1,0 +1,23 @@
+{
+  "name": "flack",
+  "version": "1.0.0",
+  "description": "Instant messaging webapp",
+  "main": "static/index.js",
+  "scripts": {
+    "start": "cd static && npm install",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yogeshsingh101200/flack.git"
+  },
+  "author": "yogesh singh",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yogeshsingh101200/flack/issues"
+  },
+  "homepage": "https://github.com/yogeshsingh101200/flack#readme",
+  "engines": {
+    "node": "14.5.0"
+  }
+}
