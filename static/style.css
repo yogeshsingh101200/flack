@@ -9956,11 +9956,7 @@ li {
   font-size: 1em;
   font-weight: normal;
   width: 100%;
+  line-height: 1.5em;
 }
-
-/*
-.reply-msg {
-    font-size: small;
-} */
 
 /*# sourceMappingURL=style.css.map */

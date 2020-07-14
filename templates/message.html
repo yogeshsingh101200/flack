@@ -6,9 +6,9 @@
         </div>
         {% if message.get("quote_msg") %}
         <a data-ref="{{message.quote_msg.id}}" onclick="jump(this)"
-            class="quote-msg badge badge-secondary text-light text-left">
+            class="quote-msg badge badge-secondary text-light text-left text-wrap">
             <div class="card-body p-0">
-                <div class="card-title">{{message.quote_msg.by}}</div>
+                <div class="card-title mb-1 font-weight-bold">{{message.quote_msg.by}}</div>
                 <p class="card-text">
                     {{message.quote_msg.content}}
                 </p>
