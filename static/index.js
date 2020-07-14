@@ -307,17 +307,24 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     function replyMsg() {
+        // Jquery for bootstrap modal
+        $('#replyModal').on('shown.bs.modal', function () {
+            document.querySelector("#reply").focus();
+        });
+
+        $('#replyModal').on('hidden.bs.modal', function () {
+            document.querySelector("#reply").value = "";
+            setTimeout(() => {
+                document.querySelector("#message").focus();
+            }, 0);
+        });
+
         document.querySelector(".quoted-msg").innerHTML = "";
         const ele = this.parentElement.cloneNode(true);
         ele.removeChild(ele.querySelector(".reply-msg"));
         document.querySelector(".quoted-msg").append(ele);
 
         listen_for_reply(this.parentElement.parentElement.dataset.id);
-
-        // Wait for modal transition to complete
-        setTimeout(() => {
-            document.querySelector("#reply").focus();
-        }, 500);
 
         return false;
     }
@@ -343,8 +350,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 "reply": document.querySelector("#reply").value,
                 "msg_id": msgId
             }, response => {
-                const element = document.querySelector("#msg-wrapper");
-
                 // Creating message for list of messages
                 const li = document.createElement("li");
                 li.setAttribute("class", "d-flex flex-column align-items-end mb-1");
@@ -365,7 +370,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 // Waits for completion of modal fade out transition
                 setTimeout(() => {
-                    updateScroll(element, true);
+                    updateScroll(document.querySelector("#msg-wrapper"), true);
                 }, 300);
             });
 
