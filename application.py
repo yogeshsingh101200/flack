@@ -4,12 +4,14 @@ from datetime import datetime
 
 from flask import Flask, render_template, session, redirect, request
 from flask_socketio import SocketIO, send, emit, join_room, leave_room
+from flask_moment import Moment
 from flask_session import Session
 
 from helpers import signin_required, random_hex_lightcolor
 
 app = Flask(__name__)
 app.config["SESSION_TYPE"] = "filesystem"
+moment = Moment(app)
 Session(app)
 socketio = SocketIO(app, manage_session=False)
 
@@ -167,20 +169,17 @@ def msg(data):
     room = users[session["user"]]["room"]
 
     # getting current date time
-    date_time = datetime.now()
-    current_date = date_time.strftime("%d-%m-%Y")
-    current_time = date_time.strftime("%I:%M:%S %p")
+    date_time = datetime.utcnow()
+    date_time = date_time.strftime("%Y-%m-%dT%I:%M:%SZ")
 
     counter["msg_id"] += 1
     message = {
         "id": counter["msg_id"],
         "by": session["user"],
-        "date": current_date,
-        "time": current_time,
+        "datetime": date_time,
         "content": content
     }
 
-    # color = users[session["user"]]["color"]
     if len(rooms[room]["messages"]) > 100:
         rooms[room]["messages"].pop(0)
 
@@ -210,16 +209,14 @@ def reply_msg(data):
     room = users[session["user"]]["room"]
 
     # getting current date time
-    date_time = datetime.now()
-    current_date = date_time.strftime("%d-%m-%Y")
-    current_time = date_time.strftime("%I:%M:%S %p")
+    date_time = datetime.utcnow()
+    date_time = date_time.strftime("%Y-%m-%dT%I:%M:%SZ")
 
     counter["msg_id"] += 1
     message = {
         "id": counter["msg_id"],
         "by": session["user"],
-        "date": current_date,
-        "time": current_time,
+        "datetime": date_time,
         "content": content
     }
 
