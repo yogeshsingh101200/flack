@@ -118,7 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ele.disabled = true;
 
         // Adds channel.html content to document
-        document.querySelector("#channel-space").innerHTML = data.channel_space;
+        $("#channel-space").html($.parseHTML(data.channel_space, document, true));
 
         // Listen for user message sent
         listen_for_msg_sending();
@@ -166,10 +166,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Creating message for list of messages
                 const li = document.createElement("li");
                 li.setAttribute("class", "d-flex flex-column align-items-end mb-1");
-                li.innerHTML = response.message;
 
                 // Adding to list of messages
                 document.querySelector("#messages").append(li);
+                $(li).html($.parseHTML(response.message, document, true));
 
                 // Listen for reply to message
                 li.querySelector(".reply-msg").onclick = replyMsg;
@@ -253,10 +253,10 @@ document.addEventListener("DOMContentLoaded", () => {
         // Creating message for list of messages
         const li = document.createElement("li");
         li.setAttribute("class", "d-flex flex-column align-items-start mb-1");
-        li.innerHTML = data.message;
 
         // Adding to list of messages
         document.querySelector("#messages").append(li);
+        $(li).html($.parseHTML(data.message, document, true));
 
         // Listen for reply message
         li.querySelector(".reply-msg").onclick = replyMsg;
@@ -353,10 +353,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Creating message for list of messages
                 const li = document.createElement("li");
                 li.setAttribute("class", "d-flex flex-column align-items-end mb-1");
-                li.innerHTML = response.message;
 
                 // Adding to list of messages
                 document.querySelector("#messages").append(li);
+                $(li).html($.parseHTML(response.message, document, true));
 
                 // Listen for reply to message
                 li.querySelector(".reply-msg").onclick = replyMsg;
@@ -389,10 +389,10 @@ document.addEventListener("DOMContentLoaded", () => {
         // Creating message for list of messages
         const li = document.createElement("li");
         li.setAttribute("class", "d-flex flex-column align-items-start mb-1");
-        li.innerHTML = data.message;
 
         // Adding to list of messages
         document.querySelector("#messages").append(li);
+        $(li).html($.parseHTML(data.message, document, true));
 
         // Listen for reply message
         li.querySelector(".reply-msg").onclick = replyMsg;
@@ -419,8 +419,4 @@ function jump(ele) {
     setTimeout(() => {
         target.style.opacity = original;
     }, 500);
-}
-
-function gettime(ele) {
-    ele.parentElement.innerHTML = moment(ele.dataset.timestamp).format("DD-MM-YYYY hh:mm:ss a");
 }
