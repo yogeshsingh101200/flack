@@ -420,3 +420,7 @@ function jump(ele) {
         target.style.opacity = original;
     }, 500);
 }
+
+function gettime(ele) {
+    ele.parentElement.innerHTML = moment(ele.dataset.timestamp).format("DD-MM-YYYY hh:mm:ss a");
+}
