@@ -8,12 +8,20 @@
         Flack: {% block title %}{% endblock %}
     </title>
 
+    {% if request.endpoint == "index" %}
+
     <!-- Socket IO library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
 
+    <!-- Moment js library -->
+    <script src="{{ url_for('static', filename='node_modules/moment/min/moment.min.js')}}"></script>
+
     <!-- Javascript -->
-    {% if request.endpoint == "index" %}
     <script src="{{ url_for('static', filename='index.js') }}"></script>
+
+    <!-- Font awesome icon set -->
+    <script src="https://kit.fontawesome.com/977ea8e001.js" crossorigin="anonymous"></script>
+
     {% endif %}
 
     <!-- CSS -->
@@ -21,9 +29,6 @@
 
     <!-- Icon -->
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}?v=2">
-
-    <!-- Font awesome icon set -->
-    <script src="https://kit.fontawesome.com/977ea8e001.js" crossorigin="anonymous"></script>
 </head>
 
 <body class="d-flex flex-column">
