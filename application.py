@@ -4,14 +4,12 @@ from datetime import datetime
 
 from flask import Flask, render_template, session, redirect, request
 from flask_socketio import SocketIO, send, emit, join_room, leave_room
-from flask_moment import Moment
 from flask_session import Session
 
 from helpers import signin_required, random_hex_lightcolor
 
 app = Flask(__name__)
 app.config["SESSION_TYPE"] = "filesystem"
-moment = Moment(app)
 Session(app)
 socketio = SocketIO(app, manage_session=False)
 
