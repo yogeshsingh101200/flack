@@ -2,7 +2,9 @@
     <div class="card-body px-1 py-0">
         <div class="card-title mx-1 my-1">
             <span class="usr-name" data-color="{{color}}">{{message.by}}</span>
-            <small>{{message.date}} {{message.time}}</small>
+            <small>
+                <img src="//" onerror="gettime(this)" data-timestamp="{{message.datetime}}">
+            </small>
         </div>
         {% if message.get("quote_msg") %}
         <a data-ref="{{message.quote_msg.id}}" onclick="jump(this)"
